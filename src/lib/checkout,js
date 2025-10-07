@@ -1,0 +1,11 @@
+export async function startCheckout({ formId, priceId, successUrl, cancelUrl }) {
+  const res = await fetch(import.meta.env.VITE_N8N_CHECKOUT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json' },
+    body: JSON.stringify({ formId, priceId, success_url: successUrl, cancel_url: cancelUrl }),
+  })
+  if (!res.ok) throw new Error('Checkout Fehler')
+  const data = await res.json()
+  if (!data?.url) throw new Error('Keine Checkout URL')
+  window.location.href = data.url
+}

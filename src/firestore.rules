@@ -1,0 +1,14 @@
+// firestore.rules
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{db}/documents {
+    // MVP: nur create/updates erlauben; später AppCheck + Captcha ergänzen
+    match /forms/{formId} {
+      allow create: if true;
+      allow update: if true;
+      allow read: if false; // Status abruf später serverseitig/protected
+    }
+    match /orders/{orderId} { allow read, write: if false; }
+    match /events/{eventId} { allow read, write: if false; }
+  }
+}
