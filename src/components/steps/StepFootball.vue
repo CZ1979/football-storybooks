@@ -1,53 +1,24 @@
 <script setup>
 import { useFormStore } from '@/stores/form'
-
 const s = useFormStore()
-
-const toneOptions = [
-  { label: 'Abenteuerlich', value: 'abenteuerlich' },
-  { label: 'Humorvoll', value: 'humorvoll' },
-  { label: 'Motivierend', value: 'motivierend' },
-]
-
-const lengthOptions = [
-  { label: 'Kurz', value: 'short' },
-  { label: 'Mittel', value: 'medium' },
-  { label: 'Lang', value: 'long' },
-]
 </script>
 
 <template>
-  <div class="grid gap-4 md:grid-cols-2">
+  <div class="grid gap-4">
     <div>
-      <label class="block text-sm mb-1">Ton der Geschichte</label>
-      <select v-model="s.storyOptions.tone" class="w-full px-3 py-2 rounded border">
-        <option v-for="tone in toneOptions" :key="tone.value" :value="tone.value">
-          {{ tone.label }}
-        </option>
-      </select>
+      <label class="block text-sm mb-1">Mitspieler (Kommagetrennt)</label>
+      <input v-model="s.child.teammatesString" placeholder="Leo, Tim, Jonas"
+             class="w-full border rounded px-3 py-2" />
     </div>
     <div>
-      <label class="block text-sm mb-1">Anzahl Kapitel</label>
-      <input
-        v-model.number="s.storyOptions.chapters"
-        type="number"
-        min="3"
-        max="12"
-        class="w-full px-3 py-2 rounded border"
-      />
+      <label class="block text-sm mb-1">Rivalen</label>
+      <input v-model="s.child.rivalsString" placeholder="FC Langen"
+             class="w-full border rounded px-3 py-2" />
     </div>
-    <div class="md:col-span-2">
-      <label class="block text-sm mb-1">Geschichtenlänge</label>
-      <div class="flex gap-3">
-        <label
-          v-for="opt in lengthOptions"
-          :key="opt.value"
-          class="flex items-center gap-2 px-3 py-2 border rounded cursor-pointer"
-        >
-          <input type="radio" :value="opt.value" v-model="s.storyOptions.length" />
-          <span>{{ opt.label }}</span>
-        </label>
-      </div>
+    <div>
+      <label class="block text-sm mb-1">Stärken</label>
+      <input v-model="s.child.traitsString" placeholder="Torschuss, Übersicht"
+             class="w-full border rounded px-3 py-2" />
     </div>
   </div>
 </template>
