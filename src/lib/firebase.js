@@ -2,6 +2,9 @@ import { initializeApp } from 'firebase/app'
 import { getFirestore, doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore'
 import { getApp, getApps } from 'firebase/app'
 
+console.log('[Firebase Project]', import.meta.env.VITE_FIREBASE_PROJECT_ID)
+
+
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
