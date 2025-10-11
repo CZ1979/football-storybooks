@@ -1,120 +1,102 @@
 <script setup>
 import { ref } from 'vue'
-import { useFormStore } from '@/stores/form'
+import { useRouter } from 'vue-router'
+import { createBook } from '@/lib/firebase'
 
-// Komponenten der einzelnen Steps importieren
-import StepCustomer from '@/components/steps/StepCustomer.vue'
-import StepChild from '@/components/steps/StepChild.vue'
-import StepFootball from '@/components/steps/StepFootball.vue'
-import StepReview from '@/components/steps/StepReview.vue'
+// reactive Formdaten (werden aus Steps gefüllt)
+const form = ref({
+  child: { name: '', age: null },
+  club: '',
+  language: 'de',
+  email: '',
+  storyIdea: '',
+  title: ''
+})
 
-// Reaktive Variablen
-const step = ref(0)
-const s = useFormStore()
+const loading = ref(false)
+const router = useRouter()
 
-// Alle Formular-Schritte definieren
-const steps = [
-  { name: 'Kontakt', component: StepCustomer },
-  { name: 'Kind', component: StepChild },
-  { name: 'Fußball', component: StepFootball },
-  { name: 'Review', component: StepReview },
-]
+async function handleSubmit() {
+  try {
+    loading.value = true
 
-// Navigation
-function next() {
-  if (step.value < steps.length - 1) step.value++
-}
-function back() {
-  if (step.value > 0) step.value--
+    // createBook schreibt direkt in Firestore.books
+    const id = await createBook({
+      title: form.value.title,
+      child: form.value.child,
+      club: form.value.club,
+      language: form.value.language,
+      email: form.value.email,
+      storyIdea: form.value.storyIdea
+    })
+
+    // Weiterleitung zur Status-Seite
+    router.push({ name: 'status', params: { id } })
+  } catch (err) {
+    console.error('❌ Fehler beim Speichern:', err)
+    alert('Fehler beim Speichern. Bitte versuche es erneut.')
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
 <template>
-  <div class="max-w-3xl mx-auto px-4 sm:px-6">
-    <!-- Fortschrittsanzeige -->
-    <div class="mb-6">
-      <div class="flex justify-between items-center mb-2">
-        <span class="text-sm font-medium text-gray-600">
-          Schritt {{ step + 1 }} von {{ steps.length }}
-        </span>
-        <span class="text-sm font-semibold text-[#00B86B]">
-          {{ steps[step].name }}
-        </span>
+  <section class="create-page">
+    <h1 class="text-2xl font-bold mb-4">Deine Fußballgeschichte erstellen</h1>
+
+    <form @submit.prevent="handleSubmit" class="space-y-4">
+      <div>
+        <label class="block font-semibold">Name des Kindes</label>
+        <input v-model="form.child.name" type="text" required class="border p-2 w-full rounded" />
       </div>
-      <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
-        <div
-          class="h-full bg-green-600 transition-all duration-500"
-          :style="{ width: ((step + 1) / steps.length) * 100 + '%' }"
-        ></div>
+
+      <div>
+        <label class="block font-semibold">Alter</label>
+        <input v-model="form.child.age" type="number" min="5" max="16" class="border p-2 w-full rounded" />
       </div>
-    </div>
 
-    <!-- Überschrift -->
-  <h1 class="text-2xl sm:text-3xl font-bold text-center mb-8 text-gray-800 dark:text-gray-100">Deine Fußballgeschichte</h1>
-
-    <!-- Step-Navigation -->
-  <div class="flex justify-center mb-8 px-2">
-      <template v-if="steps && steps.length">
-        <div v-for="(st, i) in steps" :key="st.name" class="flex items-center">
-          <div
-            :class="[
-              'rounded-full w-9 h-9 flex items-center justify-center text-sm font-semibold transition-colors duration-300 shadow-sm',
-              i === step
-                ? 'bg-green-600 text-white'
-                : i < step
-                ? 'bg-green-100 text-green-700'
-                : 'bg-gray-300 text-gray-700'
-            ]"
-          >
-            {{ i + 1 }}
-          </div>
-          <span
-            v-if="i < steps.length - 1"
-            class="w-10 h-[2px] bg-gray-300 mx-2"
-          ></span>
-        </div>
-      </template>
-    </div>
-
-    <!-- Step Content -->
-    <transition name="fade" mode="out-in">
-      <div
-        v-if="steps && steps[step]"
-        :key="step"
-        class="bg-white dark:bg-gray-900 shadow-lg rounded-3xl p-6 sm:p-8"
-      >
-        <component :is="steps[step].component" />
+      <div>
+        <label class="block font-semibold">Verein</label>
+        <input v-model="form.club" type="text" placeholder="z. B. SKG Sprendlingen" class="border p-2 w-full rounded" />
       </div>
-    </transition>
 
-    <!-- Navigation Buttons -->
-    <div class="flex justify-between mt-6" v-if="steps && steps.length">
-      <button
-        @click="back"
-        :disabled="step === 0"
-        class="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-40 transition-transform transform hover:-translate-y-0.5"
-      >
-        Zurück
-      </button>
+      <div>
+        <label class="block font-semibold">E-Mail</label>
+        <input v-model="form.email" type="email" required class="border p-2 w-full rounded" />
+      </div>
+
+      <div>
+        <label class="block font-semibold">Sprachauswahl</label>
+        <select v-model="form.language" class="border p-2 w-full rounded">
+          <option value="de">Deutsch</option>
+          <option value="en">Englisch</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block font-semibold">Idee oder Wunsch</label>
+        <textarea
+          v-model="form.storyIdea"
+          placeholder="z. B. Maxi schießt das entscheidende Tor im Finale"
+          class="border p-2 w-full rounded"
+        />
+      </div>
 
       <button
-        @click="next"
-        class="px-6 py-2 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition transform hover:scale-105"
+        type="submit"
+        :disabled="loading"
+        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
       >
-        {{ step === steps.length - 1 ? 'Fertig' : 'Weiter' }}
+        {{ loading ? 'Wird gespeichert …' : 'Geschichte starten' }}
       </button>
-    </div>
-  </div>
+    </form>
+  </section>
 </template>
 
 <style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.4s;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
+.create-page {
+  max-width: 600px;
+  margin: 2rem auto;
 }
 </style>
-
